@@ -27,6 +27,8 @@ export const App = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
 
   let filteredProducts = products;
+  let isOutlined =
+    !inputField && activeUser === 'All' && !selectedCategories.length;
 
   if (activeUser !== 'All') {
     filteredProducts = products.filter(
@@ -40,6 +42,12 @@ export const App = () => {
     filteredProducts = filteredProducts.filter(product => {
       return product.name.toLowerCase().includes(normalized);
     });
+  }
+
+  if (selectedCategories.length) {
+    filteredProducts = filteredProducts.filter(product =>
+      selectedCategories.includes(product.category.title),
+    );
   }
 
   return (
@@ -106,7 +114,9 @@ export const App = () => {
               <a
                 href="#/"
                 data-cy="AllCategories"
-                className="button is-success mr-6 is-outlined"
+                className={cn('button is-success mr-6', {
+                  'is-outlined': selectedCategories.length > 0,
+                })}
               >
                 All
               </a>
@@ -125,10 +135,13 @@ export const App = () => {
               <a
                 data-cy="ResetAllButton"
                 href="#/"
-                className="button is-link is-outlined is-fullwidth"
+                className={cn('button is-link is-fullwidth', {
+                  'is-outlined': isOutlined,
+                })}
                 onClick={() => {
                   setActiveUser('All');
                   setInputField('');
+                  setSelectedCategories([]);
                 }}
               >
                 Reset all filters
