@@ -6,9 +6,9 @@ import cn from 'classnames';
 import usersFromServer from './api/users';
 import categoriesFromServer from './api/categories';
 import productsFromServer from './api/products';
-import { User } from './components/User/User';
-import { Category } from './components/Category/Category';
-import { Product } from './components/Product/Product';
+import { User } from './components/User';
+import { Category } from './components/Category';
+import { Product } from './components/Product';
 
 const products = productsFromServer.map(product => {
   const category = categoriesFromServer.find(c => c.id === product.categoryId);
@@ -25,9 +25,10 @@ export const App = () => {
   const [activeUser, setActiveUser] = useState('All');
   const [inputField, setInputField] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [reverse, setReverse] = useState(false);
 
   let filteredProducts = products;
-  let isOutlined =
+  const isOutlined =
     !inputField && activeUser === 'All' && !selectedCategories.length;
 
   if (activeUser !== 'All') {
@@ -45,9 +46,9 @@ export const App = () => {
   }
 
   if (selectedCategories.length) {
-    filteredProducts = filteredProducts.filter(product =>
-      selectedCategories.includes(product.category.title),
-    );
+    filteredProducts = filteredProducts.filter(product => {
+      return selectedCategories.includes(product.category.title);
+    });
   }
 
   return (
