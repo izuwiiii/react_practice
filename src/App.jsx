@@ -65,7 +65,9 @@ export const App = () => {
                 data-cy="FilterAllUsers"
                 href="#/"
                 className={cn({ 'is-active': activeUser === 'All' })}
-                onClick={() => setActiveUser('All')}
+                onClick={() => {
+                  setActiveUser('All');
+                }}
               >
                 All
               </a>
@@ -118,6 +120,7 @@ export const App = () => {
                 className={cn('button is-success mr-6', {
                   'is-outlined': selectedCategories.length > 0,
                 })}
+                onClick={() => setSelectedCategories([])}
               >
                 All
               </a>
