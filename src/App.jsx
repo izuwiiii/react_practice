@@ -6,6 +6,9 @@ import cn from 'classnames';
 import usersFromServer from './api/users';
 import categoriesFromServer from './api/categories';
 import productsFromServer from './api/products';
+import { User } from './components/User/User';
+import { Category } from './components/Category/Category';
+import { Product } from './components/Product/Product';
 
 const products = productsFromServer.map(product => {
   const category = categoriesFromServer.find(c => c.id === product.categoryId);
@@ -21,18 +24,23 @@ const products = productsFromServer.map(product => {
 export const App = () => {
   const [activeUser, setActiveUser] = useState('All');
   const [inputField, setInputField] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState([]);
 
-  let filteredProducts =
-    activeUser !== 'All'
-      ? products.filter(product => product.user.name === activeUser)
-      : products;
+  let filteredProducts = products;
 
-  const normalized = inputField.trim().toLowerCase();
+  if (activeUser !== 'All') {
+    filteredProducts = products.filter(
+      product => product.user.name === activeUser,
+    );
+  }
 
-  // filterProducts = filteredProducts.filter(product => product.name.toLowerCase().includes(normalized))
-  filteredProducts = filteredProducts.filter(product =>
-    product.name.toLowerCase().includes(normalized),
-  );
+  if (inputField) {
+    const normalized = inputField.trim().toLowerCase();
+
+    filteredProducts = filteredProducts.filter(product => {
+      return product.name.toLowerCase().includes(normalized);
+    });
+  }
 
   return (
     <div className="section">
@@ -54,15 +62,12 @@ export const App = () => {
               </a>
 
               {usersFromServer.map(user => (
-                <a
-                  data-cy="FilterUser"
-                  href="#/"
-                  className={cn({ 'is-active': user.name === activeUser })}
-                  onClick={() => setActiveUser(user.name)}
+                <User
+                  user={user}
+                  activeUser={activeUser}
+                  setActiveUser={setActiveUser}
                   key={user.id}
-                >
-                  {user.name}
-                </a>
+                />
               ))}
             </p>
 
@@ -106,28 +111,14 @@ export const App = () => {
                 All
               </a>
 
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 1
-              </a>
-
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 2
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 3
-              </a>
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 4
-              </a>
+              {categoriesFromServer.map(category => (
+                <Category
+                  category={category}
+                  key={category.id}
+                  selectedCategories={selectedCategories}
+                  setSelectedCategories={setSelectedCategories}
+                />
+              ))}
             </div>
 
             <div className="panel-block">
@@ -202,27 +193,7 @@ export const App = () => {
 
               <tbody>
                 {filteredProducts.map(product => (
-                  <tr data-cy="Product" key={product.id}>
-                    <td className="has-text-weight-bold" data-cy="ProductId">
-                      {product.id}
-                    </td>
-
-                    <td data-cy="ProductName">{product.name}</td>
-                    <td data-cy="ProductCategory">
-                      {product.category.icon} - {product.category.title}
-                    </td>
-
-                    <td
-                      data-cy="ProductUser"
-                      className={cn(
-                        product.user.sex === 'm'
-                          ? 'has-text-link'
-                          : 'has-text-danger',
-                      )}
-                    >
-                      {product.user.name}
-                    </td>
-                  </tr>
+                  <Product product={product} key={product.id} />
                 ))}
               </tbody>
             </table>
