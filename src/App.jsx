@@ -6,6 +6,7 @@ import cn from 'classnames';
 import usersFromServer from './api/users';
 import categoriesFromServer from './api/categories';
 import productsFromServer from './api/products';
+
 import { User } from './components/User';
 import { Category } from './components/Category';
 import { Product } from './components/Product';
@@ -21,15 +22,30 @@ const products = productsFromServer.map(product => {
   };
 });
 
+function setProductsSorted(category, setSortBy, sortCount, setSortCount) {
+  setSortCount(prev => prev + 1);
+  if (sortCount >= 2) {
+    setSortCount(0);
+  }
+
+  setSortBy(category);
+}
+
 export const App = () => {
   const [activeUser, setActiveUser] = useState('All');
   const [inputField, setInputField] = useState('');
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [reverse, setReverse] = useState(false);
+  const [sortBy, setSortBy] = useState('');
+  const [sortCount, setSortCount] = useState(0);
+  const categories = ['ID', 'Product', 'Category', 'User'];
 
   let filteredProducts = products;
+
   const isOutlined =
-    !inputField && activeUser === 'All' && !selectedCategories.length;
+    !inputField &&
+    activeUser === 'All' &&
+    !selectedCategories.length &&
+    sortCount === 0;
 
   if (activeUser !== 'All') {
     filteredProducts = products.filter(
@@ -49,6 +65,68 @@ export const App = () => {
     filteredProducts = filteredProducts.filter(product => {
       return selectedCategories.includes(product.category.title);
     });
+  }
+
+  if (sortBy) {
+    switch (sortBy) {
+      case 'ID':
+        if (sortCount === 2) {
+          filteredProducts = filteredProducts.sort((a, b) => b.id - a.id);
+        } else {
+          filteredProducts = filteredProducts.sort((a, b) => a.id - b.id);
+        }
+
+        break;
+
+      case 'Product':
+        if (sortCount === 0) {
+          filteredProducts = filteredProducts.sort((a, b) => a.id - b.id);
+        } else if (sortCount === 2) {
+          filteredProducts = filteredProducts.sort((a, b) => {
+            return b.name.localeCompare(a.name);
+          });
+        } else {
+          filteredProducts = filteredProducts.sort((a, b) => {
+            return a.name.localeCompare(b.name);
+          });
+        }
+
+        break;
+
+      case 'Category':
+        if (sortCount === 0) {
+          filteredProducts = filteredProducts.sort((a, b) => a.id - b.id);
+        } else if (sortCount === 2) {
+          filteredProducts = filteredProducts.sort((a, b) => {
+            return b.category.title.localeCompare(a.category.title);
+          });
+        } else {
+          filteredProducts = filteredProducts.sort((a, b) => {
+            return a.category.title.localeCompare(b.category.title);
+          });
+        }
+
+        break;
+
+      case 'User':
+        if (sortCount === 0) {
+          filteredProducts = filteredProducts.sort((a, b) => a.id - b.id);
+        } else if (sortCount === 2) {
+          filteredProducts = filteredProducts.sort((a, b) => {
+            return b.user.name.localeCompare(a.user.name);
+          });
+        } else {
+          filteredProducts = filteredProducts.sort((a, b) => {
+            return a.user.name.localeCompare(b.user.name);
+          });
+        }
+
+        break;
+
+      default:
+        filteredProducts = filteredProducts.sort((a, b) => a.id - b.id);
+        break;
+    }
   }
 
   return (
@@ -146,6 +224,8 @@ export const App = () => {
                   setActiveUser('All');
                   setInputField('');
                   setSelectedCategories([]);
+                  setSortCount(0);
+                  setSortBy('All');
                 }}
               >
                 Reset all filters
@@ -162,49 +242,50 @@ export const App = () => {
             >
               <thead>
                 <tr>
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      ID
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
-
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      Product
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort-down" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
-
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      Category
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort-up" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
-
-                  <th>
-                    <span className="is-flex is-flex-wrap-nowrap">
-                      User
-                      <a href="#/">
-                        <span className="icon">
-                          <i data-cy="SortIcon" className="fas fa-sort" />
-                        </span>
-                      </a>
-                    </span>
-                  </th>
+                  {categories.map(category => (
+                    <th key={category}>
+                      <span className="is-flex is-flex-wrap-nowrap">
+                        {category}
+                        <a href="#/">
+                          <span
+                            className="icon"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                setProductsSorted(
+                                  category,
+                                  setSortBy,
+                                  sortCount,
+                                  setSortCount,
+                                );
+                              }
+                            }}
+                            onClick={() =>
+                              setProductsSorted(
+                                category,
+                                setSortBy,
+                                sortCount,
+                                setSortCount,
+                              )
+                            }
+                          >
+                            <i
+                              data-cy="SortIcon"
+                              className={cn('fas', {
+                                'fa-sort':
+                                  sortBy !== category || sortCount === 0,
+                                'fa-sort-up':
+                                  sortBy === category && sortCount === 1,
+                                'fa-sort-down':
+                                  sortBy === category && sortCount === 2,
+                              })}
+                            />
+                          </span>
+                        </a>
+                      </span>
+                    </th>
+                  ))}
                 </tr>
               </thead>
 
