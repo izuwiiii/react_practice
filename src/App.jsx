@@ -8,10 +8,8 @@ import categoriesFromServer from './api/categories';
 import productsFromServer from './api/products';
 
 const products = productsFromServer.map(product => {
-  const category = categoriesFromServer.find(
-    category => category.id === product.categoryId,
-  );
-  const user = usersFromServer.find(user => user.id === category.ownerId);
+  const category = categoriesFromServer.find(c => c.id === product.categoryId);
+  const user = usersFromServer.find(u => u.id === category.ownerId);
 
   return {
     ...product,
@@ -24,10 +22,17 @@ export const App = () => {
   const [activeUser, setActiveUser] = useState('All');
   const [inputField, setInputField] = useState('');
 
-  const filteredProducts =
+  let filteredProducts =
     activeUser !== 'All'
       ? products.filter(product => product.user.name === activeUser)
       : products;
+
+  const normalized = inputField.trim().toLowerCase();
+
+  // filterProducts = filteredProducts.filter(product => product.name.toLowerCase().includes(normalized))
+  filteredProducts = filteredProducts.filter(product =>
+    product.name.toLowerCase().includes(normalized),
+  );
 
   return (
     <div className="section">
@@ -69,7 +74,9 @@ export const App = () => {
                   className="input"
                   placeholder="Search"
                   value={inputField}
-                  onChange={event => setInputField(event.target.value)}
+                  onChange={event => {
+                    setInputField(event.target.value);
+                  }}
                 />
 
                 <span className="icon is-left">
@@ -78,11 +85,14 @@ export const App = () => {
 
                 <span className="icon is-right">
                   {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
-                    data-cy="ClearButton"
-                    type="button"
-                    className="delete"
-                  />
+                  {inputField && (
+                    <button
+                      data-cy="ClearButton"
+                      type="button"
+                      className="delete"
+                      onClick={() => setInputField('')}
+                    />
+                  )}
                 </span>
               </p>
             </div>
@@ -125,6 +135,10 @@ export const App = () => {
                 data-cy="ResetAllButton"
                 href="#/"
                 className="button is-link is-outlined is-fullwidth"
+                onClick={() => {
+                  setActiveUser('All');
+                  setInputField('');
+                }}
               >
                 Reset all filters
               </a>
